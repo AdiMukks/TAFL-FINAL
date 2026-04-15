@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finite Automata Simulator</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <h1>Finite Automata Simulator</h1>
+        </div>
+        <div class="nav-controls">
+            <button id="authorBtn" class="btn outline">Author</button>
+            <button id="examplesBtn" class="btn outline">Examples</button>
+            <button id="darkModeToggle" class="btn secondary">🌙</button>
+            <button id="theoryBtn" class="btn theory-toggle">Theory</button>
+            <div class="mode-toggle">
+                <span id="dfa-label" class="active">DFA</span>
+                <label class="switch">
+                    <input type="checkbox" id="modeSwitch">
+                    <span class="slider round"></span>
+                </label>
+                <span id="nfa-label">NFA</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            
+            <section class="card">
+                <h2>State Tools</h2>
+                <div class="button-group">
+                    <button id="addStateBtn" class="btn primary">Add State</button>
+                    <button id="deleteStateBtn" class="btn danger outline">Delete State</button>
+                </div>
+                <div class="button-group">
+                    <button id="markStartBtn" class="btn outline">Mark Start</button>
+                    <button id="markAcceptBtn" class="btn outline">Mark Accept</button>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Transitions</h2>
+                <div class="form-group row">
+                    <div class="input-col">
+                        <label for="sourceState">From</label>
+                        <select id="sourceState"></select>
+                    </div>
+                    <span class="arrow-icon">→</span>
+                    <div class="input-col">
+                        <label for="destState">To</label>
+                        <select id="destState"></select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="input-col symbol-col">
+                        <label for="transitionSymbol">Symbol(s)</label>
+                        <input type="text" id="transitionSymbol" placeholder="e.g. 0,1 or leave empty for ε">
+                        <small class="helper-text" id="symbolHelper">Comma separated. Empty = ε.</small>
+                    </div>
+                    <button id="addTransitionBtn" class="btn secondary align-bottom">Add</button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="transitionTable">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Symbol</th>
+                                <th>Dest</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Simulation Panel</h2>
+                <div class="form-group">
+                    <label for="inputString">Input String</label>
+                    <input type="text" id="inputString" placeholder="Enter string to test">
+                </div>
+                <div class="button-group">
+                    <button id="stepBtn" class="btn primary">Next Step</button>
+                    <button id="runBtn" class="btn success">Run</button>
+                </div>
+                <div class="button-group mt-2">
+                    <button id="resetSimulationBtn" class="btn outline">Reset Sim</button>
+                    <button id="clearAllBtn" class="btn danger">Clear All</button>
+                </div>
+            </section>
+
+        </aside>
+
+        <!-- Main Canvas Area -->
+        <main class="canvas-area">
+            <div id="resultBanner" class="result-banner hidden">
+                <span id="resultText"></span>
+            </div>
+            
+            <canvas id="automataCanvas"></canvas>
+            
+            <!-- Context Menu (Internal use or instructions) -->
+            <div class="canvas-hint">Drag nodes to move. Click to select.</div>
+        </main>
+    </div>
+
+    <!-- Theory Modal -->
+    <div id="theoryModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Automata Theory</h2>
+                <button id="closeTheoryBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>What is Finite Automata?</h3>
+                <p>Finite Automata are abstract machines used to recognize patterns. They consist of a finite number of states, transitions between these states based on input symbols, and designated start and accept states.</p>
+                
+                <h3>DFA (Deterministic Finite Automaton)</h3>
+                <p>In a DFA, for each state and for each symbol, there is exactly <strong>one</strong> transition to a next state. Epsilon (ε) transitions are strictly not allowed.</p>
+
+                <h3>NFA (Non-Deterministic Finite Automaton)</h3>
+                <p>An NFA can transition to <strong>multiple</strong> next states for the same symbol. It can also transition between states without consuming any input symbol, via an <strong>epsilon (ε)</strong> transition. During execution, it essentially "threads" its existence and can be in multiple states at once.</p>
+                
+                <h3>In this Simulator</h3>
+                <ul>
+                    <li>Toggle between DFA and NFA mode at the top.</li>
+                    <li>Add states and connect them using the sidebar.</li>
+                    <li>Double click on states or use the sidebar buttons to mark a state as 'Start' or 'Accepting'.</li>
+                    <li>Type a string of characters (e.g. <code>1011</code>) and hit <strong>Run</strong> to watch the machine process!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="authorModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Author Info</h2>
+                <button id="closeAuthorBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Created By</h3>
+                <p><strong>Name:</strong> Aditya Mukkundi</p>
+                <p><strong>Roll Number:</strong> 20204UCD2149</p>
+                <p><strong>Branch:</strong> CSDS</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Examples Modal -->
+    <div id="examplesModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Preset Examples</h2>
+                <button id="closeExamplesBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="button-group">
+                    <button class="btn primary" id="loadDfaExampleBtn">DFA: Binary ends in 01</button>
+                </div>
+                <div class="button-group">
+                    <button class="btn secondary" id="loadNfaExampleBtn">NFA: Contains '11'</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
